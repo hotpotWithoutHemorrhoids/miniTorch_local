@@ -23,6 +23,12 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
     # TODO: Implement for Task 1.1.
+    arg_1 = [i for i in vals]
+    arg_1[arg] += epsilon
+    m = f(*arg_1)
+    arg_1[arg] -= 2*epsilon
+    n = f(*arg_1)
+    return (m-n)/(2*epsilon)
     raise NotImplementedError("Need to implement for Task 1.1")
 
 
