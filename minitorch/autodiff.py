@@ -23,12 +23,13 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
     # TODO: Implement for Task 1.1.
-    arg_1 = [i for i in vals]
-    arg_1[arg] += epsilon
-    m = f(*arg_1)
-    arg_1[arg] -= 2*epsilon
-    n = f(*arg_1)
-    return (m-n)/(2*epsilon)
+    vals_plus_epsilon = list(vals)
+    vals_minus_epsilon = list(vals)
+
+    vals_plus_epsilon[arg] += epsilon
+    vals_minus_epsilon[arg] -= epsilon
+
+    return (f(*vals_plus_epsilon) - f(*vals_minus_epsilon)) / (2 * epsilon)
     raise NotImplementedError("Need to implement for Task 1.1")
 
 
@@ -68,7 +69,19 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
         Non-constant Variables in topological order starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    visited = set()
+    sorted_list = []
+    def sort_core(var: Variable):
+        if var.unique_id in visited or var.is_constant():
+            return
+        if not var.is_leaf():
+            for parent_var in var.parents:
+                sort_core(parent_var)
+        sorted_list.insert(0,var)
+        visited.add(var.unique_id)
+    
+    sort_core(variable)
+    return sorted_list
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -83,7 +96,20 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    
+    top_sorted = topological_sort(variable)
+    derivations = {var.unique_id : 0 for var in top_sorted}
+    derivations[variable.unique_id] = deriv
+    for x in top_sorted:
+        d_out = derivations[x.unique_id]
+        if x.is_leaf():
+            x.accumulate_derivative(d_out)
+        else:
+            back = x.chain_rule(d_out)
+            for back_var, back_d in back:
+                derivations[back_var.unique_id] += back_d
+
+    # raise NotImplementedError("Need to implement for Task 1.4")
 
 
 @dataclass

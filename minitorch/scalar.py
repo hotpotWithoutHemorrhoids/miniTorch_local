@@ -183,7 +183,8 @@ class Scalar:
         assert h.last_fn is not None
         assert h.ctx is not None
         ds = h.last_fn._backward(h.ctx, d_output)
-        return zip(h.inputs, ds)
+        result = zip(h.inputs, ds)
+        return result
         # TODO: Implement for Task 1.3.
         raise NotImplementedError("Need to implement for Task 1.3")
 
@@ -210,7 +211,7 @@ def derivative_check(f: Any, *scalars: Scalar) -> None:
         *scalars  : n input scalar values.
     """
     out = f(*scalars)
-    out.backward()
+    out.backward() 
 
     err_msg = """
 Derivative check at arguments f(%s) and received derivative f'=%f for argument %d,
