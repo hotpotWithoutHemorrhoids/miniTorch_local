@@ -44,6 +44,10 @@ def index_to_position(index: Index, strides: Strides) -> int:
     """
 
     # TODO: Implement for Task 2.1.
+    pos = 0
+    for i, v in enumerate(index):
+        pos += v + strides[i]
+    return pos
     raise NotImplementedError("Need to implement for Task 2.1")
 
 
@@ -61,6 +65,15 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     # TODO: Implement for Task 2.1.
+    # for out_index: a[x][y][z] where shape dimentiaon 3
+    # ordinal = x*(shape[1] + shape[2]) +y*shape[2] + z
+    # z = ordinal%shape[2]
+    # y = (ordinal//shape[2])%shape[1] = (x*shape[1] +y)%shape[1]
+    # x = ((ordinal//shape[2]) // shape[1])%shape[0]
+    for d in range(len(shape)-1, -1, -1):
+        out_index[d] = ordinal%shape[d]
+        ordinal = ordinal//shape[d]
+    return
     raise NotImplementedError("Need to implement for Task 2.1")
 
 
@@ -223,6 +236,7 @@ class TensorData:
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
         # TODO: Implement for Task 2.1.
+        return TensorData(self._storage, tuple([self.shape[i] for i in order]), tuple([self.strides[i] for i in order]))
         raise NotImplementedError("Need to implement for Task 2.1")
 
     def to_string(self) -> str:
