@@ -96,8 +96,9 @@ def broadcast_index(
     Returns:
         None
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    for i in range(len(shape)):
+        offset = i + len(big_shape) - len(shape)
+        out_index[i] = big_index[offset] if shape[i] != 1 else 0
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -113,9 +114,28 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
 
     Raises:
         IndexingError : if cannot broadcast
+    
+    example: 
+    out = minitorch.zeros((2, 3, 1)) + minitorch.zeros((7, 2, 1, 5))
+    out.shape: (7, 2, 3, 5)
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    max_len = max(len(shape1), len(shape2))
+    ans = [0]*max_len
+    if len(shape1)>len(shape2):
+        # combine [1]* (len(shape1) - len(shape2)) and shape2
+        t_shape2 = [1]*(len(shape1) - len(shape2)) + list(shape2)
+        t_shape1 = shape1
+    else:
+        # combine [1]* (len(shape2) - len(shape1)) and shape1
+        t_shape1 = [1]*(len(shape2) - len(shape1)) + list(shape1)
+        t_shape2 = shape2
+    for i in range(max_len):
+        if t_shape1[i] != t_shape2[i] and (t_shape1[i]!=1 and t_shape2[i] != 1):
+            raise IndexingError(f"it's cannot broadcast for {shape1} and {shape2}")
+        ans[i] = max(t_shape1[i], t_shape2[i])
+    return ans
+
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
