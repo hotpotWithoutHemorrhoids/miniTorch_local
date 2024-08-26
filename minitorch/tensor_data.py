@@ -46,7 +46,7 @@ def index_to_position(index: Index, strides: Strides) -> int:
     # TODO: Implement for Task 2.1.
     pos = 0
     for i, v in enumerate(index):
-        pos += v + strides[i]
+        pos += v * strides[i]
     return pos
     raise NotImplementedError("Need to implement for Task 2.1")
 
@@ -134,7 +134,7 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         if t_shape1[i] != t_shape2[i] and (t_shape1[i]!=1 and t_shape2[i] != 1):
             raise IndexingError(f"it's cannot broadcast for {shape1} and {shape2}")
         ans[i] = max(t_shape1[i], t_shape2[i])
-    return ans
+    return tuple(ans)
 
 
 

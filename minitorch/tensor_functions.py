@@ -100,6 +100,8 @@ class Mul(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(a,b)
+        return a.f.mul_zip(a,b)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -112,6 +114,9 @@ class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        sig = t1.f.sigmoid_map(t1)
+        ctx.save_for_backward(sig)
+        return sig
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -124,6 +129,8 @@ class ReLU(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(t1)
+        return t1.f.relu_map(t1)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -136,6 +143,8 @@ class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(t1)
+        return t1.f.log_map(t1)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -148,6 +157,9 @@ class Exp(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        exp = t1.f.exp_map(t1)
+        ctx.save_for_backward(exp)
+        return exp
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -181,6 +193,8 @@ class LT(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(a,b)
+        return a.f.lt_zip(a,b)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -193,6 +207,8 @@ class EQ(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(a.shape, b.shape)
+        return a.f.eq_zip(a, b)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
@@ -205,6 +221,8 @@ class IsClose(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        ctx.save_for_backward(a.shape, b.shape)
+        return a.f.is_close_zip(a,b)
         raise NotImplementedError("Need to implement for Task 2.3")
 
 
@@ -212,6 +230,8 @@ class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
+        # 因为tensor的构造需要保证backend不为None， 所以需要传入backend
+        return Tensor(a._tensor.permute(*order), backend=a.backend)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
