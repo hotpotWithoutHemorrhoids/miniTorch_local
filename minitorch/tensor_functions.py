@@ -107,6 +107,8 @@ class Mul(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         # TODO: Implement for Task 2.4.
+        a,b = ctx.saved_values
+        return (grad_output.f.mul_zip(grad_output,b), grad_output.f.mul_zip(grad_output,a))
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -122,6 +124,10 @@ class Sigmoid(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         # TODO: Implement for Task 2.4.
+        # sigmod 函数导数等于 sigmod(x)*(1 - sigmod(x))
+        sig, = ctx.saved_values
+        neg_sig = sig.f.neg_map(sig)
+        return grad_output.f.mul_zip(sig.f.mul_zip(sig, 1+neg_sig), grad_output)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -136,6 +142,8 @@ class ReLU(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         # TODO: Implement for Task 2.4.
+        t1, = ctx.saved_values
+        return grad_output.f.relu_back_zip(t1, grad_output)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -150,6 +158,8 @@ class Log(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         # TODO: Implement for Task 2.4.
+        t1, = ctx.saved_values
+        return grad_output.f.log_back_zip(t1, grad_output)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -165,6 +175,9 @@ class Exp(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
         # TODO: Implement for Task 2.4.
+        # exp函数的导数函数: exp(x)*grad_output
+        exp, = ctx.saved_values
+        return grad_output.f.mul_zip(exp, grad_output)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -193,13 +206,16 @@ class LT(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
-        ctx.save_for_backward(a,b)
+        ctx.save_for_backward(a.shape,b.shape)
         return a.f.lt_zip(a,b)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         # TODO: Implement for Task 2.4.
+        # lt 函数的导数为0 
+        a_shape, b_shape = ctx.saved_values
+        return zeros(a_shape),zeros(b_shape)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -214,6 +230,8 @@ class EQ(Function):
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
         # TODO: Implement for Task 2.4.
+        a_shape, b_shape = ctx.saved_values
+        return zeros(a_shape), zeros(b_shape)
         raise NotImplementedError("Need to implement for Task 2.4")
 
 
@@ -231,12 +249,25 @@ class Permute(Function):
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
         # 因为tensor的构造需要保证backend不为None， 所以需要传入backend
-        return Tensor(a._tensor.permute(*order), backend=a.backend)
+        int_order = [int(x) for x in order._tensor._storage]
+        ctx.save_for_backward(int_order)
+
+        # a._new creates a new tensor with the same backend as `a`
+        return a._new(a._tensor.permute(*int_order))
+        # return Tensor(a._tensor.permute(*int_order), backend=a.backend)
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         # TODO: Implement for Task 2.4.
+        (new_order,) = ctx.saved_values
+
+        # Create a mapping from value to index for efficient lookup
+        # Use the mapping to construct the original order
+        original_order_map = {v: i for i, v in enumerate(new_order)}
+        original_order = [original_order_map[i] for i in range(len(new_order))]
+
+        return grad_output._new(grad_output._tensor.permute(*original_order)), 0.0
         raise NotImplementedError("Need to implement for Task 2.4")
 
 

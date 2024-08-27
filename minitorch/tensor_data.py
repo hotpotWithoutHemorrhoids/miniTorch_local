@@ -137,7 +137,6 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
     return tuple(ans)
 
 
-
 def strides_from_shape(shape: UserShape) -> UserStrides:
     layout = [1]
     offset = 1

@@ -97,18 +97,40 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
     """
     # TODO: Implement for Task 1.4.
     
-    top_sorted = topological_sort(variable)
-    derivations = {var.unique_id : 0 for var in top_sorted}
-    derivations[variable.unique_id] = deriv
-    for x in top_sorted:
-        d_out = derivations[x.unique_id]
-        if x.is_leaf():
-            x.accumulate_derivative(d_out)
-        else:
-            back = x.chain_rule(d_out)
-            for back_var, back_d in back:
-                derivations[back_var.unique_id] += back_d
+    # top_sorted = topological_sort(variable)
+    # derivations = {var.unique_id : 0 for var in top_sorted}
+    # derivations[variable.unique_id] = deriv
+    # for x in top_sorted:
+    #     d_out = derivations[x.unique_id]
+    #     if x.is_leaf():
+    #         x.accumulate_derivative(d_out)
+    #     else:
+    #         back = x.chain_rule(d_out)
+    #         for back_var, back_d in back:
+    #             derivations[back_var.unique_id] += back_d
 
+    # 法线上面那段错误，修改为下面 TODO 没看懂这里是干嘛
+    derivatives_dict = {variable.unique_id: deriv}
+
+    top_sort = topological_sort(variable)
+
+    # Iterate through the topological order and calculate the derivatives
+    for curr_var in top_sort:
+        if curr_var.is_leaf():
+            continue
+
+        # Get the derivatives of the current variable
+        var_n_der = curr_var.chain_rule(derivatives_dict[curr_var.unique_id])
+
+        # Accumulate the derivative for each parent of the current variable
+        for var, deriv in var_n_der:
+            if var.is_leaf():
+                var.accumulate_derivative(deriv)
+            else:
+                if var.unique_id not in derivatives_dict:
+                    derivatives_dict[var.unique_id] = deriv
+                else:
+                    derivatives_dict[var.unique_id] += deriv
     # raise NotImplementedError("Need to implement for Task 1.4")
 
 
