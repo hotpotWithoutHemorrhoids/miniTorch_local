@@ -116,9 +116,12 @@ class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
         # TODO: Implement for Task 2.3.
-        sig = t1.f.sigmoid_map(t1)
-        ctx.save_for_backward(sig)
-        return sig
+        # sig = t1.f.sigmoid_map(t1)
+        # ctx.save_for_backward(sig)
+        # return sig
+        ctx.save_for_backward(t1)
+        return t1.f.sigmoid_map(t1)
+        
         raise NotImplementedError("Need to implement for Task 2.3")
 
     @staticmethod

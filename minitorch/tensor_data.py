@@ -70,6 +70,9 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
     # z = ordinal%shape[2]
     # y = (ordinal//shape[2])%shape[1] = (x*shape[1] +y)%shape[1]
     # x = ((ordinal//shape[2]) // shape[1])%shape[0]
+
+    # 加上这一句，避免在除法赋值中报错(线程冲突，和内存拷贝的关系)
+    ordinal = ordinal + 0
     for d in range(len(shape)-1, -1, -1):
         out_index[d] = ordinal%shape[d]
         ordinal = ordinal//shape[d]

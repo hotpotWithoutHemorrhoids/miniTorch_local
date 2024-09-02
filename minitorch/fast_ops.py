@@ -160,7 +160,45 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+        # for out_pos_raw in prange(len(out)):
+        #     out_idx = np.zeros_like(out_shape)
+        #     in_idx = np.zeros_like(in_shape)
+        #     to_index(out_pos_raw, out_shape, out_idx)
+        #     out_pos = index_to_position(out_idx, out_strides)
+        #     broadcast_index(out_idx, out_shape, in_shape, in_idx)
+        #     in_pos = index_to_position(in_idx, in_strides)
+        #     out[out_pos] = fn(in_storage[in_pos])
+
+        # for i in prange(len(out)):
+        #     out_index = np.zeros_like(out_shape, np.int32)
+        #     in_index = np.zeros_like(in_shape, np.int32)
+
+        #     to_index(i, out_shape, out_index)
+        #     broadcast_index(out_index, out_shape, in_shape, in_index)
+        #     data = in_storage[index_to_position(in_index, in_strides)]
+        #     map_data = fn(data)
+        #     out_pos = index_to_position(out_index, out_strides)
+        #     out[out_pos] = map_data
+
+        if np.array_equal(out_shape, in_shape) and np.array_equal(
+            out_strides, in_strides
+        ):
+            for out_pos in prange(len(out)):
+                out[out_pos] = fn(in_storage[out_pos])
+        else:
+            for out_pos_raw in prange(len(out)):
+                out_idx = np.empty_like(out_shape)
+                in_idx = np.empty_like(in_shape)
+                to_index(out_pos_raw, out_shape, out_idx)
+                out_pos = index_to_position(out_idx, out_strides)
+                broadcast_index(out_idx, out_shape, in_shape, in_idx)
+                in_pos = index_to_position(in_idx, in_strides)
+                print("tensor_map",  in_storage[in_pos], fn)
+                map_data = fn(in_storage[in_pos])
+                
+                out[out_pos] = map_data
+
+        # raise NotImplementedError("Need to implement for Task 3.1")
 
     return njit(parallel=True)(_map)  # type: ignore
 
@@ -199,7 +237,19 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+
+        for out_pos_raw in prange(len(out)):
+            out_idx = np.zeros_like(out_shape)
+            a_idx = np.zeros_like(a_shape)
+            b_idx = np.zeros_like(b_shape)
+            to_index(out_pos_raw, out_shape, out_idx)
+            out_pos = index_to_position(out_idx, out_strides)
+            broadcast_index(out_idx, out_shape, a_shape, a_idx)
+            a_pos = index_to_position(a_idx, a_strides)
+            broadcast_index(out_idx, out_shape, b_shape, b_idx)
+            b_pos = index_to_position(b_idx, b_strides)
+            out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
+        # raise NotImplementedError("Need to implement for Task 3.1")
 
     return njit(parallel=True)(_zip)  # type: ignore
 
@@ -233,7 +283,20 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+        reduce_len: int = a_shape[reduce_dim]
+        reduce_stride = a_strides[reduce_dim]
+
+        for out_pos_raw in prange(len(out)):
+            out_idx = np.zeros_like(out_shape)
+            to_index(out_pos_raw, out_shape, out_idx)
+            out_pos = index_to_position(out_idx, out_strides)
+            a_start_pos = index_to_position(out_idx, a_strides)
+            tmp = out[out_pos]
+            for reduce_idx in prange(reduce_len):
+                tmp = fn(tmp, a_storage[a_start_pos + reduce_idx * reduce_stride])
+            out[out_pos] = tmp
+
+        # raise NotImplementedError("Need to implement for Task 3.1")
 
     return njit(parallel=True)(_reduce)  # type: ignore
 
@@ -281,6 +344,35 @@ def _tensor_matrix_multiply(
     """
     a_batch_stride = a_strides[0] if a_shape[0] > 1 else 0
     b_batch_stride = b_strides[0] if b_shape[0] > 1 else 0
+
+    n = len(out)
+    for i in prange(n):
+        # i 计算得到输出的索引
+        out_index = np.zeros_like(out_shape, np.int32)
+        temp_i = i + 0
+        to_index(temp_i, out_shape, out_index)
+        # 计算其在storage中的索引
+        out_pos = index_to_position(out_index, out_strides)
+
+        # 再进行内部的小循环 第一个矩阵的行元素乘上第二个矩阵的列元素，再相加
+        mid_dim = a_shape[-1]
+        for j in range(mid_dim):
+            temp_j = j+0
+            # 分别找到第一，二矩阵中对应的值
+            a_index = np.zeros_like(a_shape, np.int32)
+            a_temp_idex = out_index.copy()
+            a_temp_idex[-1] = temp_j
+            broadcast_index(a_temp_idex, out_shape, a_shape, a_index)
+            a_pos = index_to_position(a_index, a_strides)
+
+            b_index = np.zeros_like(b_shape)
+            b_temp_idex = out_index.copy()
+            b_temp_idex[-2] = temp_j
+            broadcast_index(b_temp_idex, out_shape, b_shape, b_index)
+            b_pos = index_to_position(b_index, b_strides)
+
+            out[out_pos] += a_storage[a_pos]* b_storage[b_pos]
+
 
     # TODO: Implement for Task 3.2.
     raise NotImplementedError("Need to implement for Task 3.2")

@@ -4,7 +4,7 @@ Collection of the core mathematical operators used throughout the code base.
 
 import math
 from typing import Callable, Iterable
-
+import numpy as np
 # ## Task 0.1
 #
 # Implementation of a prelude of elementary functions.
@@ -111,7 +111,7 @@ def log(x: float) -> float:
 
 def exp(x: float) -> float:
     "$f(x) = e^{x}$"
-    return math.exp(x)
+    return np.exp(x)
 
 
 def log_back(x: float, d: float) -> float:
