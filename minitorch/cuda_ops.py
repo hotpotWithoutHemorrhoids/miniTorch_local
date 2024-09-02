@@ -369,7 +369,7 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
     """
     BLOCK_DIM = 32
     # TODO: Implement for Task 3.3.
-    assert size< BLOCK_DIM
+    assert size<= BLOCK_DIM
     cache_a = cuda.shared.array((BLOCK_DIM, BLOCK_DIM),numba.float64)
     cache_b = cuda.shared.array((BLOCK_DIM, BLOCK_DIM),numba.float64)
     i = cuda.threadIdx.x
@@ -455,6 +455,31 @@ def _tensor_matrix_multiply(
     #    b) Copy into shared memory for b matrix
     #    c) Compute the dot produce for position c[i, j]
     # TODO: Implement for Task 3.4.
+
+    assert a_shape[-1] == b_shape[-2]
+    out_pos = batch * out_strides[0] + i * out_strides[1] + j * out_strides[2]
+    a_cache_pos = batch * a_batch_stride + i * a_strides[1] + pj * a_strides[2]
+    b_cache_pos = batch * b_batch_stride + pi * b_strides[1] + j * b_strides[2]
+    a_cache_stride = BLOCK_DIM * a_strides[2]
+    b_cache_stride = BLOCK_DIM * b_strides[1]
+    out_sum = 0
+    sum_len = a_shape[-1]
+
+    for k_offset in range(0, sum_len, BLOCK_DIM):
+        if i < a_shape[1] and (k_offset + pj) < a_shape[2]:
+            a_shared[pi][pj] = a_storage[a_cache_pos]
+        if (k_offset + pi) < b_shape[1] and j < b_shape[2]:
+            b_shared[pi][pj] = b_storage[b_cache_pos]
+        cuda.syncthreads()
+        if i < out_shape[1] and j < out_shape[2]:
+            for k in range(0, min(BLOCK_DIM, sum_len - k_offset)):
+                out_sum += a_shared[pi][k] * b_shared[k][pj]
+        a_cache_pos += a_cache_stride
+        b_cache_pos += b_cache_stride
+        cuda.syncthreads()
+    if i < out_shape[1] and j < out_shape[2]:
+        out[out_pos] = out_sum
+    return
     raise NotImplementedError("Need to implement for Task 3.4")
 
 
